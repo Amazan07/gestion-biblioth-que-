@@ -26,6 +26,28 @@ Utilisateur / Client (Navigateur Web)
         ▲
         │
 ┌───────┴───────┐
-│Infrastructure │  <-- Base de données (SQLite / Repositories)
-└───────────────┘
+│Infrastructure │  <-- Base de données(┘
+
+ [ COUCHE EXTERNE (Infrastructure & API) ]      [ COUCHE INTERNE (Cœur Métier) ]
+ 
+        app/api/ (FastAPI)
+       ┌──────────────────┐
+       │     routes.py    │─────┐
+       └──────────────────┘     │
+                                ▼
+                       app/use_cases/                  app/domain/
+                      ┌──────────────────┐            ┌──────────────────┐
+                      │                  │            │     book.py      │
+                      │ library_service  │───────────►├──────────────────┤
+                      │       .py        │            │    student.py    │
+                      │                  │            ├──────────────────┤
+                      └──────────────────┘            │     loan.py      │
+                                ▲                     └──────────────────┘
+                                │                              ▲
+        app/infrastructure/     │                              │
+       ┌──────────────────┐     │                              │
+       │   database.py    │─────┘                              │
+       │    (SQLite)      │────────────────────────────────────┘
+       └──────────────────┘
+
  gestion-biblioth-que-
