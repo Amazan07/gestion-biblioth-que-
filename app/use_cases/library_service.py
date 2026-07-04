@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
-from app.domain.book import Book
-from app.domain.loan import Loan
+from app.entities.book import Book
+from app.entities.loan import Loan
 
 
 class LibraryService:
