@@ -1,43 +1,54 @@
-from datetime import datetime
-from typing import Optional
-from app.entities.book import Book
+from app.entities.student import Student
 from app.entities.loan import Loan
-
+from app.use_cases.library_repository import LibraryRepository
 
 class LibraryService:
+    def __init__(self, repository: LibraryRepository):
+        # On injecte l'interface
+        self.repository = repository
 
-    def __init__(self):
-        # Pour ce mini-projet, on stocke les emprunts dans une liste en mémoire.
-        # C'est simple, rapide et parfait pour valider l'architecture !
-        self._loans = []
-
-    def borrow_book(self, loan_id: int, book: Book, student_id: int) -> Optional[Loan]:
-        """Cas d'utilisation : Emprunter un livre s'il est disponible"""
-        # On vérifie si le livre est libre (Utilisation du @property id)
-        if not book.is_available:
-            print(f"Désolé, le livre '{book.title}' est déjà emprunté.")
-            return None
-
-        # 1. On change le statut du livre (Utilisation du @is_available.setter)
-        book.is_available = False
-
-        # 2. On crée l'objet Emprunt
-        new_loan = Loan(
-            id=loan_id,
-            book_id=book.id,
-            student_id=student_id,
-            loan_date=datetime.now()
-        )
+    def borrow_book(self, book_id: int, student_id: int, student_name: str) -> dict:
+        """Cas d'utilisation : Emprunter un livre de manière dynamique."""
+        book = self.repository.get_book_by_id(book_id)
+        if not book:
+            return {"success": False, "error": "Livre non trouvé", "status_code": 404}
         
-        self._loans.append(new_loan)
-        print(f"Succès ! Le livre '{book.title}' a été emprunté avec succès.")
-        return new_loan
+        if not book.is_available:
+            return {"success": False, "error": f"Désolé, '{book.title}' est déjà emprunté", "status_code": 400}
+        
+        # 1. Enregistrement de l'emprunt dans l'infrastructure pour obtenir un ID unique
+        generated_loan_id = self.repository.save_loan(book_id, student_id)
+        
+        # 2. Utilisation de nos entités pures avec les vraies valeurs dynamiques
+        student = Student(id=student_id, name=student_name)
+        loan = Loan(id=generated_loan_id, book_id=book.id, student_id=student.id)
+        
+        # 3. Mise à jour du statut du livre
+        self.repository.update_book_availability(book_id, is_available=False)
+        
+        return {
+            "success": True,
+            "message": f"Le livre '{book.title}' (ID: {book.id}) a été emprunté avec succès par {student.name}.",
+            "loan_details": {
+                "loan_id": loan.id,
+                "book_title": book.title,
+                "book_id": loan.book_id,
+                "student_id": loan.student_id
+            }
+        }
 
-    def return_book(self, loan: Loan, book: Book):
-        """Cas d'utilisation : Rendre un livre"""
-        # 1. On remet le livre disponible
-        book.is_available = True
-
-        # 2. On enregistre la date de retour (Utilisation du @return_date.setter)
-        loan.return_date = datetime.now()
-        print(f"Le livre '{book.title}' a bien été retourné.")
+    def return_book(self, book_id: int) -> dict:
+        """Cas d'utilisation : Rendre un livre."""
+        book = self.repository.get_book_by_id(book_id)
+        if not book:
+            return {"success": False, "error": "Livre non trouvé", "status_code": 404}
+        
+        if book.is_available:
+            return {"success": False, "error": "Ce livre est déjà présent dans la bibliothèque", "status_code": 400}
+        
+        self.repository.update_book_availability(book_id, is_available=True)
+        
+        return {
+            "success": True,
+            "message": f"Le livre '{book.title}' a bien été rendu et est à nouveau disponible."
+        }

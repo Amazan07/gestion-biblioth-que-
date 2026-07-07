@@ -1,0 +1,13 @@
+# Ignorer les fichiers compilés Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorer l'environnement virtuel
+.venv/
+venv/
+ENV/
+
+# Ignorer la base de données locale pour ne pas écraser tes tests
+library.db
