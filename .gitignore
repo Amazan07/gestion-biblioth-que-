@@ -9,5 +9,5 @@
 venv/
 ENV/
 
-# Ignorer la base de données locale pour ne pas écraser tes tests
+# Ignorer la base de données locale 
 library.db

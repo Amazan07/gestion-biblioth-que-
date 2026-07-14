@@ -16,14 +16,14 @@ class BorrowBookUseCase:
         if not book.is_available:
             return {"success": False, "error": f"Désolé, '{book.title}' est déjà emprunté", "status_code": 400}
         
-        # 1. Enregistrement de l'emprunt dans l'infrastructure
+        #  Enregistrement de l'emprunt dans l'infrastructure
         generated_loan_id = self.repository.save_loan(book_id, student_id)
         
-        # 2. Utilisation de nos entités pures
+        #  Utilisation de nos entités pures
         student = Student(id=student_id, name=student_name)
         loan = Loan(id=generated_loan_id, book_id=book.id, student_id=student.id)
         
-        # 3. Mise à jour du statut du livre
+        #  Mise à jour du statut du livre
         self.repository.update_book_availability(book_id, is_available=False)
         
         return {
